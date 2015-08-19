@@ -165,6 +165,7 @@ public class FMRadioService extends Service
    private FMDeathRecipient mFMdr;
 
    //PhoneStateListener instances corresponding to each
+   private ArrayList<Integer> mScannedFrequencies = new ArrayList<Integer>();
 
    private FmRxRdsData mFMRxRDSData=null;
    // interval after which we stop the service when idle
@@ -2126,6 +2127,11 @@ public class FMRadioService extends Service
          return(mService.get().isSearchInProgress());
       }
 
+      public List<Integer> getScannedFrequencies()
+      {
+         return(mService.get().getScannedFrequencies());
+      }
+
       public int getExtenCountryCode()
       {
          return(mService.get().getExtenCountryCode());
@@ -2464,6 +2470,10 @@ public class FMRadioService extends Service
       return(bStatus);
    }
 
+   public List<Integer> getScannedFrequencies() {
+       return mScannedFrequencies;
+   }
+
    public boolean isSearchInProgress() {
       int state = mReceiver.getFMState();
       return state == qcom.fmradio.FmTransceiver.FMState_Srch_InProg;
@@ -2700,6 +2710,8 @@ public class FMRadioService extends Service
     */
    public boolean scan(int pty)
    {
+      // Clear previously scanned frequencies
+      mScannedFrequencies.clear();
       boolean bCommandSent=false;
       if (mReceiver != null)
       {
@@ -3213,6 +3225,9 @@ public class FMRadioService extends Service
             /* Since the Tuned Status changed, clear out the RDSData cached */
             if(mReceiver != null) {
                clearStationInfo();
+            }
+            if (isSearchInProgress()) {
+                mScannedFrequencies.add(frequency);
             }
             if(mCallbacks != null)
             {
